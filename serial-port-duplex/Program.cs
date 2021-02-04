@@ -4,7 +4,7 @@ using CommandLine;
 
 namespace SerialPortDuplex
 {
-    class Program
+    public class Program
     {
         static void Main(string[] args)
         {
@@ -21,14 +21,29 @@ namespace SerialPortDuplex
 
         static void MainInner(CmdParam param)
         {
-            Console.WriteLine($"Started serial port terminal with parameters:");
-            Console.WriteLine($"    Port name = {param.Port}");
+            if (param.PrintSerialPortDetails)
+            {
+                TextSerialProtocol.PrintAvailableSerialPortOptions();
+                Environment.Exit(0);
+            }
+
+            Console.WriteLine($"Starting serial port chat with parameters:");
+            Console.WriteLine($"    Port name = {param.PortName}");
             Console.WriteLine($"    Chat mode = {param.Mode}");
+            Console.WriteLine($"Type {RoboChat.ExitWord} to exit..");
+            Console.WriteLine("");
+
+            //ISerialProtocol protocol = new TextSerialProtocol(param);
+            ISerialProtocol protocol = new CustomSerialProtocol(param);
+            using (var chat = new RoboChat(protocol))
+            {
+                chat.Start();
+            }
         }
 
         static void NotParsed(IEnumerable<Error> err)
         {
-            Console.WriteLine("spduplex -p <port-name> [--hex]");
+            Console.WriteLine("sp-duplex -n <port-name>");
             Console.WriteLine("Type --help to get full help message.");
 
             Environment.Exit(1);
