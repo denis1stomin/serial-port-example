@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Globalization;
 using System.Collections.Generic;
 
@@ -25,14 +26,18 @@ namespace SerialPortDuplex
         {
             // TODO : is it correct from msb/lsb perspective?
 
-            var bytes = new List<byte>(/*some average message length*/);
-            for (int nextByte = _serialPort.ReadByte(); !IsPreamb((byte)nextByte);)
+            var bytes = new List<byte>(4);
+            for (int nextByte = _serialPort.ReadByte(); !IsPreamb((byte)nextByte); nextByte = _serialPort.ReadByte())
             {
                 if (nextByte == -1)
-                    throw new Exception("Unexpected end of the stream!");
+                    throw new Exception("Unexpected end of the stream.");
                 
                 bytes.Add((byte)nextByte);
+
+                Thread.Sleep(0);
             }
+
+            // TODO : what if we have more bytes than we need? Looks like we will lose some data..
 
             int code = BitConverter.ToInt32(bytes.ToArray(), 0);
 
